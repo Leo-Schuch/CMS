@@ -1,4 +1,4 @@
-const TOKEN = '857acf71796b1f68d1d5ed0b3f8583';
+const TOKEN = process.env.DATO_TOKEN;
 
 const globalQuery = `
   query{
@@ -9,7 +9,7 @@ const globalQuery = `
 `;
 
 const BASE_ENDPOINT = 'https://graphql.datocms.com/'
-const PREVIEW_ENDPOINT = 'https://graphql.datocms.com/'
+const PREVIEW_ENDPOINT = 'https://graphql.datocms.com/preview'
 
 export async function cmsService({
   query,
