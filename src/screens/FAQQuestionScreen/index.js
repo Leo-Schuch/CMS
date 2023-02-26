@@ -1,20 +1,39 @@
-import Head from 'next/head';
-import { Footer } from '../../components/commons/Footer';
-import { Menu } from '../../components/commons/Menu';
-import { Box, Text, theme } from '../../theme/components';
-import { cmsService } from '../../infra/cms/cmsService';
-import { renderNodeRule, StructuredText } from 'react-datocms';
-import { isHeading } from 'datocms-structured-text-utils';
-import CMSProvider from '../../infra/cms/CMSProvider';
-import { pageHOC } from '../../components/wrappers/pageHOC';
-
+import Head from "next/head";
+import { Footer } from "../../components/commons/Footer";
+import { Menu } from "../../components/commons/Menu";
+import { Box, Text, theme } from "../../theme/components";
+import { cmsService } from "../../infra/cms/cmsService";
+import { renderNodeRule, StructuredText } from "react-datocms";
+import { isHeading } from "datocms-structured-text-utils";
+import CMSProvider from "../../infra/cms/CMSProvider";
+import { pageHOC } from "../../components/wrappers/pageHOC";
 
 export async function getStaticPaths() {
+  const pathsQuery = `
+    query($first: IntType, $skip: IntType){
+      allContentFaqQuestions(first: $first, skip: $skip){
+        id
+        title
+      }
+    } 
+  `;
+
+  const { data } = await cmsService({
+    query: pathsQuery,
+    variables: {
+      "first": 100,
+      "skip": 0
+    }
+  });
+
+  const paths = data.allContentFaqQuestions.map(({ id }) => {
+    return {
+      params: { id },
+    };
+  });
+
   return {
-    paths: [
-      { params: { id: 'f138c88d' } },
-      { params: { id: 'h138c88d' } },
-    ],
+    paths,
     fallback: false,
   };
 }
@@ -22,17 +41,24 @@ export async function getStaticPaths() {
 export async function getStaticProps({ params, preview }) {
   const { id } = params;
   const contentQuery = `
-    query {
-      contentFaqQuestion {
-        title
-        content {
-          value
-        }
+  query($id: ItemId) {
+    contentFaqQuestion(filter:{
+      id: {
+        eq: $id
+      }
+    }) {
+      title
+      content {
+        value
       }
     }
+  }
   `;
   const { data } = await cmsService({
     query: contentQuery,
+    variables: {
+      "id": id
+    },
     preview,
   });
 
@@ -42,11 +68,11 @@ export async function getStaticProps({ params, preview }) {
       id,
       title: data.contentFaqQuestion.title,
       content: data.contentFaqQuestion.content,
-    }
-  }
+    },
+  };
 }
 
- function FAQQuestionScreen({ cmsContent }) {
+function FAQQuestionScreen({ cmsContent }) {
   return (
     <>
       <Head>
@@ -66,10 +92,10 @@ export async function getStaticProps({ params, preview }) {
       >
         <Box
           styleSheet={{
-            flexDirection: 'column',
-            width: '100%',
+            flexDirection: "column",
+            width: "100%",
             maxWidth: theme.space.xcontainer_lg,
-            marginHorizontal: 'auto',
+            marginHorizontal: "auto",
           }}
         >
           <Text tag="h1" variant="heading1">
@@ -86,8 +112,8 @@ export async function getStaticProps({ params, preview }) {
                   <Text tag={tag} variant={variant} key={key}>
                     {children}
                   </Text>
-                )
-              })
+                );
+              }),
             ]}
           />
           {/* <pre>
@@ -97,10 +123,9 @@ export async function getStaticProps({ params, preview }) {
         </Box>
       </Box>
 
-      <Footer/>
+      <Footer />
     </>
-  )
+  );
 }
 
-export default pageHOC(FAQQuestionScreen)
- 
+export default pageHOC(FAQQuestionScreen);
