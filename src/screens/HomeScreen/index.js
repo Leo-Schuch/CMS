@@ -4,13 +4,37 @@ import { Footer } from '../../components/commons/Footer';
 import { theme, Box, Button, Text, Image } from '../../theme/components';
 import { pageHOC } from '../../components/wrappers/pageHOC';
 import { cmsService } from '../../infra/cms/cmsService';
+import { CMSSectionRender } from '../../infra/cms/CMSSectionRender';
 
 export async function getStaticProps({ preview }) {
   const { data: cmsContent } = await cmsService({
     query: `
-      query {
-        __typename
-      }  
+    query{
+      pageHome{
+        pageContent{
+          section{
+            componentName: __typename
+            ... on CommonSeoBlockRecord{
+              id
+              title
+            }
+            ... on CommonMenuRecord{
+              id
+            }
+            ... on CommonFooterRecord{
+              id
+            }
+            ... on PagehomeHerosectionRecord{
+              id
+              title
+              description
+              ctalink
+              ctatext
+            }
+          }
+        }
+      }
+    }
     `,
     preview,
   });
@@ -22,13 +46,19 @@ export async function getStaticProps({ preview }) {
   }
 }
 
+function HomeScreen(){
+  return (
+    <CMSSectionRender pageName="pageHome"/>
+  )
+}
+
+/*
 function HomeScreen() {
   return (
     <>
       <Head>
         <title>Home - Alura</title>
-      </Head>
-
+      </Head>     
       <Menu />
 
       <Box
@@ -55,9 +85,11 @@ function HomeScreen() {
           }}
         >
           <Text tag="h1" variant="display1">
+
             Mergulhe em Tecnologia!
           </Text>
           <Text tag="p" variant="body1">
+
             Você vai estudar, praticar, discutir e se aprofundar em uma plataforma que respira tecnologia.
           </Text>
           <Button href="/faq" colorVariant="neutral">
@@ -81,5 +113,6 @@ function HomeScreen() {
     </>
   )
 }
+*/
 
 export default pageHOC(HomeScreen);
